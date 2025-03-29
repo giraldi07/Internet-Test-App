@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Download,
@@ -15,30 +15,72 @@ import {
   Gamepad2,
   Github,
 } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
+
+interface NetworkInformation {
+  type?: string;
+  effectiveType?: string;
+  downlink?: number;
+  rtt?: number;
+  saveData?: boolean;
+  onchange?: EventListener;
+}
+
+declare global {
+  interface Navigator {
+    connection?: NetworkInformation;
+  }
+}
+
+interface SpeedTestResults {
+  download: number;
+  upload: number;
+  ping: number;
+  jitter: number;
+}
+
+interface IpInfo {
+  ip: string;
+  isp: string;
+  location: string;
+}
+
+interface GameRequirement {
+  name: string;
+  requirements: {
+    download: number;
+    upload: number;
+    ping: number;
+  };
+  examples: string[];
+  platforms: string[];
+}
+
+interface TestHistoryItem {
+  date: string;
+  results: SpeedTestResults;
+}
 
 function App() {
   const [testing, setTesting] = useState(false);
-  const [results, setResults] = useState({
+  const [results, setResults] = useState<SpeedTestResults>({
     download: 0,
     upload: 0,
     ping: 0,
     jitter: 0,
   });
   const [progress, setProgress] = useState(0);
-  const [ipInfo, setIpInfo] = useState({
+  const [ipInfo, setIpInfo] = useState<IpInfo>({
     ip: '',
     isp: '',
     location: '',
   });
   const [showHistory, setShowHistory] = useState(false);
   const [showGameCompat, setShowGameCompat] = useState(false);
-  const [testHistory, setTestHistory] = useState<Array<{
-    date: string;
-    results: typeof results;
-  }>>([]);
+  const [testHistory, setTestHistory] = useState<TestHistoryItem[]>([]);
   const [testPhase, setTestPhase] = useState<'ping' | 'download' | 'upload' | null>(null);
 
-  const gameRequirements = [
+  const gameRequirements: GameRequirement[] = [
     {
       name: "Online FPS Games",
       requirements: {
@@ -80,14 +122,6 @@ function App() {
       platforms: ["PC", "Mobile", "Smart TV"],
     },
   ];
-
-  useEffect(() => {
-    fetchIPInfo();
-    const savedHistory = localStorage.getItem('speedTestHistory');
-    if (savedHistory) {
-      setTestHistory(JSON.parse(savedHistory));
-    }
-  }, []);
 
   const fetchIPInfo = async () => {
     try {
@@ -140,7 +174,7 @@ function App() {
     const startTime = performance.now();
 
     try {
-      const response = await fetch('https://httpbin.org/post', {
+      await fetch('https://httpbin.org/post', {
         method: 'POST',
         body: testData,
       });
@@ -157,7 +191,7 @@ function App() {
   };
 
   const measurePing = async () => {
-    const pings = [];
+    const pings: number[] = [];
     const attempts = 4;
 
     for (let i = 0; i < attempts; i++) {
@@ -213,10 +247,22 @@ function App() {
   };
 
   useEffect(() => {
+    fetchIPInfo();
+    const savedHistory = localStorage.getItem('speedTestHistory');
+    if (savedHistory) {
+      setTestHistory(JSON.parse(savedHistory));
+    }
     runSpeedTest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const SpeedMeter = ({ value, type, icon: Icon }) => (
+  interface SpeedMeterProps {
+    value: number;
+    type: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }
+
+  const SpeedMeter = ({ value, type, icon: Icon }: SpeedMeterProps) => (
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
@@ -248,7 +294,7 @@ function App() {
     </motion.div>
   );
 
-  const checkGameCompatibility = (game) => {
+  const checkGameCompatibility = (game: GameRequirement) => {
     const { download, upload, ping } = results;
     const meetsRequirements = 
       download >= game.requirements.download &&
@@ -260,6 +306,14 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100">
+      <Helmet>
+          <title>Internet Speed Test</title>
+          <meta name="description" content="Cek kecepatan internet kamu dengan akurat dan cepat!" />
+          <meta property="og:title" content="Internet Speed Test" />
+          <meta property="og:description" content="Cek kecepatan internet kamu dengan mudah." />
+          <meta property="og:url" content="https://internet-test-app.vercel.app/" />
+          <meta property="og:type" content="website" />
+      </Helmet>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -558,7 +612,7 @@ function App() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .progress-ring {
           transition: stroke-dashoffset 0.1s;
           transform: rotate(-90deg);
