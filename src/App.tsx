@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { Signal, RefreshCw, Sun, Moon, Zap } from 'lucide-react';
+import { Signal, RefreshCw, Sun, Moon, Zap, Github, Info } from 'lucide-react';
 import { SpeedMeter } from './components/SpeedMeter';
 import { GameCompatibility } from './components/GameCompatibility';
 import { TestHistory } from './components/TestHistory';
@@ -63,9 +63,9 @@ function App() {
   const connectionType = getConnectionType();
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100' : 'bg-gradient-to-br from-gray-100 to-white text-gray-900'}`}>
+    <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100' : 'bg-gradient-to-br from-gray-100 to-white text-gray-900'}`}>
       <Helmet>
-        <title>Internet Speed Test - Check Your Connection Speed</title>
+        <title>Internet Test</title>
         <meta name="description" content="Test your internet connection speed with our fast and accurate speed test tool. Measure download speed, upload speed, ping, and more." />
         <meta name="keywords" content="internet speed test, network speed, bandwidth test, connection speed, ping test, latency test" />
         <meta property="og:title" content="Internet Speed Test" />
@@ -76,127 +76,169 @@ function App() {
         <meta name="twitter:description" content="Check your internet connection speed with our comprehensive testing tool." />
       </Helmet>
 
-      <button
-        onClick={toggleDarkMode}
-        className={`fixed top-4 right-4 p-2 rounded-full ${
-          darkMode ? 'bg-gray-700 text-yellow-400' : 'bg-gray-200 text-gray-900'
-        }`}
-      >
-        {darkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
-      </button>
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="flex justify-center items-center gap-2 mb-4">
-              <Signal className="w-8 h-8 text-blue-400" />
-              <h1 className="text-4xl font-bold">Internet Speed Test</h1>
+      {/* Header */}
+      <header className={`py-4 ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Signal className="w-6 h-6 text-blue-500" />
+              <h1 className="text-2xl font-bold">Internet Speed Test</h1>
             </div>
-            <p className={`text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Test your connection speed with our fast and accurate tool
-            </p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={toggleDarkMode}
+                className={`p-2 rounded-full ${
+                  darkMode ? 'bg-gray-700 text-yellow-400' : 'bg-gray-200 text-gray-700'
+                }`}
+                aria-label="Toggle dark mode"
+              >
+                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <a 
+                href="https://github.com/giraldi07" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={`p-2 rounded-full ${
+                  darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
+                }`}
+                aria-label="GitHub"
+              >
+                <Github className="w-5 h-5" />
+              </a>
+            </div>
           </div>
+        </div>
+      </header>
 
-          <div className={`rounded-2xl p-8 mb-8 shadow-xl border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <SpeedMeter
-                value={results.download}
-                type="Download"
-                icon={Signal}
-                testing={testing}
-                testPhase={testPhase}
-                darkMode={darkMode}
-              />
-              <SpeedMeter
-                value={results.upload}
-                type="Upload"
-                icon={Signal}
-                testing={testing}
-                testPhase={testPhase}
-                darkMode={darkMode}
-              />
-              <SpeedMeter
-                value={results.ping}
-                type="Ping"
-                icon={Signal}
-                testing={testing}
-                testPhase={testPhase}
-                darkMode={darkMode}
-              />
-              <SpeedMeter
-                value={results.jitter}
-                type="Jitter"
-                icon={Signal}
-                testing={testing}
-                testPhase={testPhase}
-                darkMode={darkMode}
-              />
+      {/* Main Content */}
+      <main className="flex-grow">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <p className={`text-lg mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Measure your internet connection speed with our accurate testing tool
+              </p>
             </div>
 
-            {testing && (
-              <div className="w-full max-w-md mx-auto mb-6">
-                <div className="flex items-center gap-4 mb-2">
-                  <span className="text-sm font-medium">{progress.toFixed(0)}%</span>
-                  <div className={`flex-1 h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                    <motion.div
-                      className="h-full bg-blue-500 rounded-full"
-                      style={{ width: `${progress}%` }}
-                    />
+            <div className={`rounded-2xl p-8 mb-8 shadow-xl border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <SpeedMeter
+                  value={results.download}
+                  type="Download"
+                  icon={Signal}
+                  testing={testing}
+                  testPhase={testPhase}
+                  darkMode={darkMode}
+                />
+                <SpeedMeter
+                  value={results.upload}
+                  type="Upload"
+                  icon={Signal}
+                  testing={testing}
+                  testPhase={testPhase}
+                  darkMode={darkMode}
+                />
+                <SpeedMeter
+                  value={results.ping}
+                  type="Ping"
+                  icon={Signal}
+                  testing={testing}
+                  testPhase={testPhase}
+                  darkMode={darkMode}
+                />
+                <SpeedMeter
+                  value={results.jitter}
+                  type="Jitter"
+                  icon={Signal}
+                  testing={testing}
+                  testPhase={testPhase}
+                  darkMode={darkMode}
+                />
+              </div>
+
+              {testing && (
+                <div className="w-full max-w-md mx-auto mb-6">
+                  <div className="flex items-center gap-4 mb-2">
+                    <span className="text-sm font-medium">{progress.toFixed(0)}%</span>
+                    <div className={`flex-1 h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                      <motion.div
+                        className="h-full bg-blue-500 rounded-full"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-center text-sm opacity-80">
+                    {testPhase && `Testing ${testPhase}...`}
                   </div>
                 </div>
-                <div className="text-center text-sm opacity-80">
-                  {testPhase && `Testing ${testPhase}...`}
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={handleSpeedTest}
-              disabled={testing}
-              className={`
-                w-full px-8 py-4 rounded-full text-white font-medium
-                flex items-center justify-center gap-2
-                ${testing
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700'}
-                transition-colors
-              `}
-            >
-              {testing ? (
-                <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  Testing...
-                </>
-              ) : (
-                <>
-                  <Zap className="w-5 h-5" />
-                  Start Speed Test
-                </>
               )}
-            </button>
+
+              <button
+                onClick={handleSpeedTest}
+                disabled={testing}
+                className={`
+                  w-full px-8 py-4 rounded-full text-white font-medium
+                  flex items-center justify-center gap-2
+                  ${testing
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700'}
+                  transition-colors
+                `}
+              >
+                {testing ? (
+                  <>
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-5 h-5" />
+                    Start Speed Test
+                  </>
+                )}
+              </button>
+            </div>
+
+            <GameCompatibility
+              results={results}
+              showGameCompat={showGameCompat}
+              setShowGameCompat={setShowGameCompat}
+              darkMode={darkMode}
+            />
+
+            <TestHistory
+              testHistory={testHistory}
+              showHistory={showHistory}
+              setShowHistory={setShowHistory}
+              darkMode={darkMode}
+            />
+
+            <NetworkDetails
+              ipInfo={ipInfo}
+              connectionType={connectionType}
+              darkMode={darkMode}
+            />
           </div>
-
-          <GameCompatibility
-            results={results}
-            showGameCompat={showGameCompat}
-            setShowGameCompat={setShowGameCompat}
-            darkMode={darkMode}
-          />
-
-          <TestHistory
-            testHistory={testHistory}
-            showHistory={showHistory}
-            setShowHistory={setShowHistory}
-            darkMode={darkMode}
-          />
-
-          <NetworkDetails
-            ipInfo={ipInfo}
-            connectionType={connectionType}
-            darkMode={darkMode}
-          />
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className={`py-6 ${darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'} border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="flex justify-center items-center gap-2 mb-4">
+              <Info className="w-5 h-5" />
+              <p className="text-sm max-w-md">
+                This tool measures your current network conditions. Results may vary based on network traffic.
+              </p>
+            </div>
+            <p className="text-sm">
+              © {new Date().getFullYear()} Internet Speed Test. Created by Giraldi Prama Yudistira.
+            </p>
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }
