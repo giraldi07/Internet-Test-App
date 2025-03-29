@@ -113,15 +113,17 @@ function App() {
       {/* Main Content */}
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto"> {/* Diubah dari max-w-4xl ke max-w-6xl */}
             <div className="text-center mb-8">
               <p className={`text-lg mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 Measure your internet connection speed with our accurate testing tool
               </p>
             </div>
 
-            <div className={`rounded-2xl p-8 mb-8 shadow-xl border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Container utama speed meter */}
+            <div className={`rounded-2xl p-6 mb-8 shadow-xl border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              {/* Grid untuk speed meter */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"> {/* Responsive grid */}
                 <SpeedMeter
                   value={results.download}
                   type="Download"
