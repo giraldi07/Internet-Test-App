@@ -131,7 +131,7 @@ function App() {
                   testing={testing}
                   testPhase={testPhase}
                   darkMode={darkMode}
-                  progress={progress}
+                 
                 />
                 <SpeedMeter
                   value={results.upload}
@@ -140,7 +140,6 @@ function App() {
                   testing={testing}
                   testPhase={testPhase}
                   darkMode={darkMode}
-                  progress={progress}
                 />
                 <SpeedMeter
                   value={results.ping}
@@ -149,7 +148,6 @@ function App() {
                   testing={testing}
                   testPhase={testPhase}
                   darkMode={darkMode}
-                  progress={progress}
                 />
                 <SpeedMeter
                   value={results.jitter}
@@ -158,7 +156,6 @@ function App() {
                   testing={testing}
                   testPhase={testPhase}
                   darkMode={darkMode}
-                  progress={progress}
                 />
               </div>
 

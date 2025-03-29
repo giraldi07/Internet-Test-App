@@ -1,4 +1,4 @@
-import { motion, useAnimation, useMotionValue } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { DivideIcon as LucideIcon } from 'lucide-react';
 import { animate } from 'framer-motion';
@@ -6,25 +6,16 @@ import { animate } from 'framer-motion';
 interface SpeedMeterProps {
   value: number;
   type: string;
-  icon: typeof LucideIcon;
+  icon: typeof LucideIcon; // Mengubah dari LucideIcon ke typeof LucideIcon
   testing: boolean;
   testPhase: string | null;
   darkMode: boolean;
-  progress?: number; // Tambahan prop untuk progress test
 }
 
-export const SpeedMeter = ({ 
-  value, 
-  type, 
-  icon: Icon, 
-  testing, 
-  testPhase, 
-  darkMode,
-  progress = 0 
-}: SpeedMeterProps) => {
+export const SpeedMeter = ({ value, type, icon: Icon, testing, testPhase, darkMode }: SpeedMeterProps) => {
   const [displayValue, setDisplayValue] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
   const controls = useAnimation();
-  const progressMotion = useMotionValue(0);
   const isActive = testing && testPhase?.toLowerCase() === type.toLowerCase();
   
   const maxValue = type === 'Ping' || type === 'Jitter' ? 200 : 1000;
@@ -42,60 +33,57 @@ export const SpeedMeter = ({
     }
   };
 
-  // Animasi nilai display
+  // Reset to zero when testing starts
   useEffect(() => {
+    if (testing && !isActive) {
+      setDisplayValue(0);
+      controls.start({
+        rotate: -90,
+        transition: { duration: 0.3 }
+      });
+    }
+  }, [testing, isActive, controls]);
+
+  // Initialize needle at zero position
+  useEffect(() => {
+    if (!isInitialized) {
+      controls.start({
+        rotate: -90,
+        transition: { duration: 0 }
+      }).then(() => setIsInitialized(true));
+    }
+  }, [controls, isInitialized]);
+
+  // Animate the displayed value with easing
+  useEffect(() => {
+    if (!isInitialized) return;
+
     const animationControls = animate(displayValue, value, {
-      duration: 1,
-      ease: 'easeOut',
+      duration: isActive ? 0.3 : 0.8,
+      ease: isActive ? "linear" : [0.4, 0, 0.2, 1],
       onUpdate(value) {
         setDisplayValue(parseFloat(value.toFixed(2)));
       },
     });
     
     return () => animationControls.stop();
-  }, [value, displayValue]);
+  }, [value, displayValue, isInitialized, isActive]);
 
-  // Animasi jarum dengan progress test
+  // Animate the needle with spring physics
   useEffect(() => {
-    if (testing && isActive) {
-      // Animasi real-time saat test berjalan
-      const updateNeedle = () => {
-        const currentProgress = progress / 100;
-        const currentValue = value * currentProgress;
-        const currentPercentage = Math.min((currentValue / maxValue) * 180, 180);
-        
-        controls.start({
-          rotate: currentPercentage - 90,
-          transition: { 
-            type: 'spring',
-            damping: 10,
-            stiffness: 100,
-            mass: 0.5
-          }
-        });
-      };
+    if (!isInitialized) return;
 
-      updateNeedle();
-    } else {
-      // Animasi normal ketika test selesai
-      controls.start({
-        rotate: percentage - 90,
-        transition: { 
-          type: 'spring',
-          damping: 15,
-          stiffness: 60,
-          mass: 0.7
-        }
-      });
-    }
-  }, [percentage, controls, testing, isActive, progress, value, maxValue]);
-
-  // Animasi progress bar
-  useEffect(() => {
-    if (isActive) {
-      progressMotion.set(progress);
-    }
-  }, [progress, isActive, progressMotion]);
+    controls.start({
+      rotate: percentage - 90,
+      transition: { 
+        type: 'spring',
+        damping: isActive ? 8 : 15,
+        stiffness: isActive ? 30 : 40,
+        mass: isActive ? 0.5 : 0.8,
+        restDelta: 0.001
+      }
+    });
+  }, [percentage, controls, isInitialized, isActive]);
 
   return (
     <motion.div
@@ -107,36 +95,37 @@ export const SpeedMeter = ({
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Active test overlay */}
       <div className={`absolute inset-0 bg-gradient-to-br ${
-        isActive ? 'from-blue-50 to-indigo-50' : 'from-transparent to-transparent'
+        isActive ? 'from-blue-50/10 to-indigo-50/10' : 'from-transparent to-transparent'
       } transition-opacity duration-500 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
-
-      {/* Progress bar */}
-      {isActive && (
-        <motion.div 
-          className="absolute top-0 left-0 h-1 bg-blue-500"
-          style={{ width: progressMotion }}
-          transition={{ duration: 0.1 }}
-        />
-      )}
 
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className={`p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-              <Icon className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+              <Icon className={`w-5 h-5 ${
+                isActive ? 'text-blue-400' : darkMode ? 'text-gray-400' : 'text-gray-600'
+              }`} />
             </div>
             <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               {type}
             </span>
           </div>
-          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          <motion.div 
+            className={`text-2xl font-bold ${
+              isActive 
+                ? 'text-blue-500' 
+                : darkMode ? 'text-white' : 'text-gray-900'
+            }`}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             {displayValue.toFixed(type === 'Ping' || type === 'Jitter' ? 0 : 1)}
             <span className="text-sm ml-1 opacity-70">
               {type === 'Ping' || type === 'Jitter' ? 'ms' : 'Mbps'}
             </span>
-          </div>
+          </motion.div>
         </div>
 
         <div className="relative h-[160px]">
@@ -144,7 +133,15 @@ export const SpeedMeter = ({
             className="w-full h-full transform -rotate-90"
             viewBox="0 0 200 200"
           >
-            {/* Background track */}
+            {/* Background track with gradient */}
+            <defs>
+              <linearGradient id={`gradient-${type}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#EF4444" />
+                <stop offset="50%" stopColor="#F59E0B" />
+                <stop offset="100%" stopColor="#10B981" />
+              </linearGradient>
+            </defs>
+            
             <circle
               cx="100"
               cy="100"
@@ -155,9 +152,10 @@ export const SpeedMeter = ({
               strokeLinecap="round"
               strokeDasharray="251.2"
               strokeDashoffset="125.6"
+              className="transition-colors duration-300"
             />
             
-            {/* Active track */}
+            {/* Active track with dynamic color */}
             <motion.circle
               cx="100"
               cy="100"
@@ -167,21 +165,26 @@ export const SpeedMeter = ({
               strokeWidth="12"
               strokeLinecap="round"
               strokeDasharray="251.2"
-              strokeDashoffset={251.2 - (percentage / 180) * 125.6}
-              className="transition-all duration-300 ease-out"
-              animate={controls}
+              initial={{ strokeDashoffset: 251.2 }}
+              animate={{ 
+                strokeDashoffset: 251.2 - (percentage / 180) * 125.6,
+                transition: {
+                  duration: isActive ? 0.3 : 0.8,
+                  ease: isActive ? "linear" : "easeOut"
+                }
+              }}
             />
 
-            {/* Tick marks */}
+            {/* Tick marks with different sizes */}
             {Array.from({ length: 19 }).map((_, i) => {
               const angle = (i * 10 - 90) * (Math.PI / 180);
               const x1 = 100 + 70 * Math.cos(angle);
               const y1 = 100 + 70 * Math.sin(angle);
-              const x2 = 100 + 80 * Math.cos(angle);
-              const y2 = 100 + 80 * Math.sin(angle);
+              const x2 = 100 + (i % 3 === 0 ? 85 : 80) * Math.cos(angle);
+              const y2 = 100 + (i % 3 === 0 ? 85 : 80) * Math.sin(angle);
               
               return (
-                <line
+                <motion.line
                   key={i}
                   x1={x1}
                   y1={y1}
@@ -189,28 +192,43 @@ export const SpeedMeter = ({
                   y2={y2}
                   stroke={darkMode ? '#4B5563' : '#D1D5DB'}
                   strokeWidth={i % 3 === 0 ? "2" : "1"}
-                  className="transition-colors duration-300"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.02 }}
                 />
               );
             })}
 
-            {/* Needle - lebih responsif */}
-            <motion.line
-              x1="100"
-              y1="100"
-              x2="180"
-              y2="100"
-              stroke={darkMode ? '#E5E7EB' : '#1F2937'}
-              strokeWidth="2"
-              strokeLinecap="round"
+            {/* Animated needle */}
+            <motion.g
               animate={controls}
-              style={{ 
-                transformOrigin: '100px 100px',
-                transformBox: 'fill-box'
-              }}
-            />
+              style={{ originX: "100px", originY: "100px" }}
+            >
+              <motion.line
+                x1="100"
+                y1="100"
+                x2="180"
+                y2="100"
+                stroke={darkMode ? '#E5E7EB' : '#1F2937'}
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <circle
+                cx="180"
+                cy="100"
+                r="3"
+                fill={darkMode ? '#E5E7EB' : '#1F2937'}
+              />
+            </motion.g>
 
-            {/* Center dot */}
+            {/* Center dot with shadow */}
+            <circle
+              cx="100"
+              cy="100"
+              r="6"
+              fill={darkMode ? '#1F2937' : '#E5E7EB'}
+              className="transition-colors duration-300"
+            />
             <circle
               cx="100"
               cy="100"
@@ -221,30 +239,46 @@ export const SpeedMeter = ({
           </svg>
         </div>
 
-        {/* Status indicator */}
-        <div className="flex items-center justify-center mt-2">
-          <div className={`h-2 w-2 rounded-full ${
-            value > maxValue * 0.8 ? 'bg-red-500' :
-            value > maxValue * 0.5 ? 'bg-yellow-500' : 'bg-green-500'
-          } mr-2`} />
+        {/* Status indicator with animation */}
+        <motion.div 
+          className="flex items-center justify-center mt-2"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <motion.div 
+            className={`h-2 w-2 rounded-full ${
+              value > maxValue * 0.8 ? 'bg-red-500' :
+              value > maxValue * 0.5 ? 'bg-yellow-500' : 'bg-green-500'
+            } mr-2`}
+            animate={{ 
+              scale: isActive ? [1, 1.2, 1] : 1,
+              opacity: isActive ? [0.5, 1, 0.5] : 1
+            }}
+            transition={{ 
+              duration: 1,
+              repeat: isActive ? Infinity : 0,
+              repeatType: "reverse"
+            }}
+          />
           <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             {value > maxValue * 0.8 ? 'Critical' :
              value > maxValue * 0.5 ? 'Warning' : 'Good'}
           </span>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Active test indicator */}
+      {/* Active test indicator with pulse animation */}
       {isActive && (
         <motion.div
           className="absolute inset-0 border-2 border-blue-500 rounded-2xl pointer-events-none"
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 0, scale: 1 }}
           animate={{ 
             opacity: [0, 0.5, 0],
             scale: [1, 1.02, 1],
             transition: { 
               repeat: Infinity,
-              duration: 2,
+              duration: 1.5,
               ease: 'easeInOut'
             } 
           }}
