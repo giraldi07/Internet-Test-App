@@ -82,7 +82,7 @@ function App() {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <Signal className="w-6 h-6 text-blue-500" />
-              <h1 className="text-2xl font-bold">Internet Speed Test</h1>
+              <h1 className="text-2xl font-bold">Internet Test</h1>
             </div>
             <div className="flex items-center gap-4">
               <button
