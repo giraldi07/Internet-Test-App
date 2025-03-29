@@ -1,4 +1,4 @@
-import { motion, useAnimation } from 'framer-motion';
+import { motion, useAnimation, useMotionValue } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { DivideIcon as LucideIcon } from 'lucide-react';
 import { animate } from 'framer-motion';
@@ -6,15 +6,25 @@ import { animate } from 'framer-motion';
 interface SpeedMeterProps {
   value: number;
   type: string;
-  icon: typeof LucideIcon; // Diubah dari LucideIcon ke typeof LucideIcon
+  icon: typeof LucideIcon;
   testing: boolean;
   testPhase: string | null;
   darkMode: boolean;
+  progress?: number; // Tambahan prop untuk progress test
 }
 
-export const SpeedMeter = ({ value, type, icon: Icon, testing, testPhase, darkMode }: SpeedMeterProps) => {
+export const SpeedMeter = ({ 
+  value, 
+  type, 
+  icon: Icon, 
+  testing, 
+  testPhase, 
+  darkMode,
+  progress = 0 
+}: SpeedMeterProps) => {
   const [displayValue, setDisplayValue] = useState(0);
   const controls = useAnimation();
+  const progressMotion = useMotionValue(0);
   const isActive = testing && testPhase?.toLowerCase() === type.toLowerCase();
   
   const maxValue = type === 'Ping' || type === 'Jitter' ? 200 : 1000;
@@ -32,6 +42,7 @@ export const SpeedMeter = ({ value, type, icon: Icon, testing, testPhase, darkMo
     }
   };
 
+  // Animasi nilai display
   useEffect(() => {
     const animationControls = animate(displayValue, value, {
       duration: 1,
@@ -44,17 +55,47 @@ export const SpeedMeter = ({ value, type, icon: Icon, testing, testPhase, darkMo
     return () => animationControls.stop();
   }, [value, displayValue]);
 
+  // Animasi jarum dengan progress test
   useEffect(() => {
-    controls.start({
-      rotate: percentage - 90,
-      transition: { 
-        type: 'spring',
-        damping: 15,
-        stiffness: 60,
-        mass: 0.7
-      }
-    });
-  }, [percentage, controls]);
+    if (testing && isActive) {
+      // Animasi real-time saat test berjalan
+      const updateNeedle = () => {
+        const currentProgress = progress / 100;
+        const currentValue = value * currentProgress;
+        const currentPercentage = Math.min((currentValue / maxValue) * 180, 180);
+        
+        controls.start({
+          rotate: currentPercentage - 90,
+          transition: { 
+            type: 'spring',
+            damping: 10,
+            stiffness: 100,
+            mass: 0.5
+          }
+        });
+      };
+
+      updateNeedle();
+    } else {
+      // Animasi normal ketika test selesai
+      controls.start({
+        rotate: percentage - 90,
+        transition: { 
+          type: 'spring',
+          damping: 15,
+          stiffness: 60,
+          mass: 0.7
+        }
+      });
+    }
+  }, [percentage, controls, testing, isActive, progress, value, maxValue]);
+
+  // Animasi progress bar
+  useEffect(() => {
+    if (isActive) {
+      progressMotion.set(progress);
+    }
+  }, [progress, isActive, progressMotion]);
 
   return (
     <motion.div
@@ -66,9 +107,19 @@ export const SpeedMeter = ({ value, type, icon: Icon, testing, testPhase, darkMo
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.3 }}
     >
+      {/* Active test overlay */}
       <div className={`absolute inset-0 bg-gradient-to-br ${
         isActive ? 'from-blue-50 to-indigo-50' : 'from-transparent to-transparent'
       } transition-opacity duration-500 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
+
+      {/* Progress bar */}
+      {isActive && (
+        <motion.div 
+          className="absolute top-0 left-0 h-1 bg-blue-500"
+          style={{ width: progressMotion }}
+          transition={{ duration: 0.1 }}
+        />
+      )}
 
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
@@ -107,7 +158,7 @@ export const SpeedMeter = ({ value, type, icon: Icon, testing, testPhase, darkMo
             />
             
             {/* Active track */}
-            <circle
+            <motion.circle
               cx="100"
               cy="100"
               r="80"
@@ -118,6 +169,7 @@ export const SpeedMeter = ({ value, type, icon: Icon, testing, testPhase, darkMo
               strokeDasharray="251.2"
               strokeDashoffset={251.2 - (percentage / 180) * 125.6}
               className="transition-all duration-300 ease-out"
+              animate={controls}
             />
 
             {/* Tick marks */}
@@ -142,7 +194,7 @@ export const SpeedMeter = ({ value, type, icon: Icon, testing, testPhase, darkMo
               );
             })}
 
-            {/* Needle */}
+            {/* Needle - lebih responsif */}
             <motion.line
               x1="100"
               y1="100"
@@ -152,7 +204,10 @@ export const SpeedMeter = ({ value, type, icon: Icon, testing, testPhase, darkMo
               strokeWidth="2"
               strokeLinecap="round"
               animate={controls}
-              style={{ transformOrigin: '100px 100px' }}
+              style={{ 
+                transformOrigin: '100px 100px',
+                transformBox: 'fill-box'
+              }}
             />
 
             {/* Center dot */}
