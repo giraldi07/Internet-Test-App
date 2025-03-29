@@ -80,7 +80,7 @@ function App() {
     fetchNetworkInfo();
   }, [darkMode]);
 
-  // Handle speed test with cleanup
+  // Update handleSpeedTest untuk menyimpan history ke localStorage
   const handleSpeedTest = useCallback(async () => {
     if (testing) return;
     
@@ -91,7 +91,10 @@ function App() {
         setResults,
         setTestPhase,
         testHistory,
-        setTestHistory
+        (newHistory) => {
+          setTestHistory(newHistory);
+          localStorage.setItem('speedTestHistory', JSON.stringify(newHistory));
+        }
       );
     } catch (error) {
       console.error('Speed test error:', error);
@@ -100,6 +103,12 @@ function App() {
       setTimeout(() => setProgress(0), 1000);
     }
   }, [testing, testHistory]);
+
+  // Tambahkan fungsi untuk menghandle perubahan history
+  const handleHistoryChange = useCallback((newHistory: TestHistoryItem[]) => {
+    setTestHistory(newHistory);
+    localStorage.setItem('speedTestHistory', JSON.stringify(newHistory));
+  }, []);
 
   // Get connection type with fallback
   const connectionType = getConnectionType();
@@ -292,6 +301,7 @@ function App() {
               <div>
                 <TestHistory
                   testHistory={testHistory}
+                  setTestHistory={handleHistoryChange} // Use the handleHistoryChange function we defined
                   showHistory={showHistory}
                   setShowHistory={setShowHistory}
                   darkMode={darkMode}
