@@ -118,7 +118,7 @@ function App() {
       </Helmet>
 
       {/* Header */}
-      <header className={`sticky top-0 z-10 py-4 shadow-md transition-colors duration-300 ${
+      <header className={`sticky top-0 z-50 py-4 shadow-md transition-colors duration-300 ${
         darkMode ? 'bg-gray-800/95 backdrop-blur-sm' : 'bg-white/95 backdrop-blur-sm'
       }`}>
         <div className="container mx-auto px-4">
