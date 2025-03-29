@@ -270,7 +270,7 @@ function App() {
           >
             <div className="flex justify-center items-center gap-2 mb-4">
               <Signal className="w-8 h-8 text-blue-400" />
-              <h1 className="text-3xl font-bold text-gray-100">Speed Test</h1>
+              <h1 className="text-3xl font-bold text-gray-100">Internet Test</h1>
             </div>
             <p className="text-gray-400">
               Test your internet connection speed and quality
