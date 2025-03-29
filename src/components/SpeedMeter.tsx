@@ -1,18 +1,25 @@
 import { motion, useAnimation } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { DivideIcon as LucideIcon } from 'lucide-react';
 import { animate } from 'framer-motion';
+import type { LucideIcon } from 'lucide-react';
 
 interface SpeedMeterProps {
   value: number;
   type: string;
-  icon: typeof LucideIcon; // Mengubah dari LucideIcon ke typeof LucideIcon
+  icon: LucideIcon;
   testing: boolean;
   testPhase: string | null;
   darkMode: boolean;
 }
 
-export const SpeedMeter = ({ value, type, icon: Icon, testing, testPhase, darkMode }: SpeedMeterProps) => {
+export const SpeedMeter = ({ 
+  value, 
+  type, 
+  icon: Icon, 
+  testing, 
+  testPhase, 
+  darkMode 
+}: SpeedMeterProps) => {
   const [displayValue, setDisplayValue] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
   const controls = useAnimation();
